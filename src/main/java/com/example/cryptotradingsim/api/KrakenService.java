@@ -15,17 +15,47 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KrakenService {
     private static final String WEBSOCKET_URL = "wss://ws.kraken.com";
     private static final String REST_API_URL = "https://api.kraken.com/0/public/AssetPairs";
+    private static final String ASSETS_API_URL = "https://api.kraken.com/0/public/Assets";
     private final Map<String, Map<String, String>> cryptoData = new ConcurrentHashMap<>();
     private final CryptoWebSocketHandler webSocketHandler;
     private final RestTemplate restTemplate;
+   // private final Map<String, String> assetNames = new ConcurrentHashMap<>();
 
     private WebSocketClient client;
 
     public KrakenService(CryptoWebSocketHandler webSocketHandler, RestTemplate restTemplate) {
         this.webSocketHandler = webSocketHandler;
         this.restTemplate = restTemplate;
+        //fetchAssetNames();
         connectWebSocket();
     }
+
+    //leftover from the attempt to get names from Kraken Api
+//    private void fetchAssetNames() {
+//        try {
+//            // Fetch asset metadata from Kraken REST API
+//            String response = restTemplate.getForObject(ASSETS_API_URL, String.class);
+//
+//            JSONObject jsonResponse = new JSONObject(response);
+//            JSONObject result = jsonResponse.getJSONObject("result");
+//
+//            // Extract asset names
+//            for (String key : result.keySet()) {
+//                JSONObject assetInfo = result.getJSONObject(key);
+//                String name = assetInfo.optString("name", "");
+//                if (!name.isEmpty()) {
+//                    assetNames.put(key, name);
+//                    System.out.println("Added asset: " + key + " -> " + name); // Debugging: Log each asset
+//                }
+//            }
+//
+//            System.out.println("Fetched asset names: " + assetNames);
+//
+//        } catch (Exception e) {
+//            System.err.println("Error fetching asset names: " + e.getMessage());
+//            System.err.println("Using fallback map.");
+//        }
+//    }
 
     private void connectWebSocket() {
         try {
@@ -176,15 +206,10 @@ public class KrakenService {
     }
 
     private String getCryptoName(String symbol) {
-        // Map Kraken trading pairs to readable names
-        Map<String, String> nameMapping = Map.of(
-                "XBT/USD", "Bitcoin",
-                "ETH/USD", "Ethereum",
-                "DOT/USD", "Polkadot",
-                "LTC/USD", "Litecoin",
-                "XRP/USD", "Ripple"
-        );
-        return nameMapping.getOrDefault(symbol, "Unknown");
+        // Extract the base currency from the pair (e.g., "XBT/USD" → "XBT")
+        //String baseCurrency = symbol.split("/")[0];
+        //String name = assetNames.getOrDefault(baseCurrency, baseCurrency);
+        return symbol.split("/")[0];
     }
 
     private void sendUpdateToClients() {

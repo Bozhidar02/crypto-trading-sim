@@ -21,11 +21,6 @@ public class CryptoWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        // Handle incoming messages (if needed)
-    }
-
-    @Override
     public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {
         sessions.remove(session);
         System.out.println("WebSocket connection closed: " + session.getId());
