@@ -15,6 +15,8 @@ public class BalanceController {
     private double balance = INITIAL_BALANCE; // stores virtual balance
     private final Map<String, Double> holdings = new HashMap<>(); // Store crypto amounts
     private final List<String> transactionHistory = new ArrayList<>();
+    private final Map<String, Double> purchases = new HashMap<>();
+
 
     @GetMapping
     public double getBalance() {//get current balance
@@ -25,6 +27,8 @@ public class BalanceController {
     public void resetBalance() {
         balance = INITIAL_BALANCE;
         transactionHistory.clear();
+        purchases.clear();
+        holdings.clear();
     }
 
     @PostMapping("/buy")
@@ -37,6 +41,7 @@ public class BalanceController {
 
         balance -= cost;
         holdings.put(symbol, holdings.getOrDefault(symbol, 0.0) + amount);
+        purchases.put(symbol, price);
         String transaction = "Bought " + amount + " " + symbol + " at $" + price + " each (Total: $" + cost + ")";
         transactionHistory.add(transaction);
 
@@ -57,9 +62,14 @@ public class BalanceController {
 
         if (holdings.get(symbol) <= 0) {
             holdings.remove(symbol);
+            purchases.remove(symbol);
         }
 
-        String transaction = "Sold " + amount + " " + symbol + " at $" + price + " each (Total: $" + earnings + ")";
+        double purchasePrice = purchases.getOrDefault(symbol, 0.0);
+        double profitLoss = (price - purchasePrice)*amount;
+        profitLoss = Math.round(profitLoss*100.0)/100.0;
+        String transaction = "Sold " + amount + " " + symbol + " at $" + price + " each (Total: $" + earnings + ")"
+                + (profitLoss >= 0 ? "Profit: $" : "Loss: $") + Math.abs(profitLoss);
         transactionHistory.add(transaction);
 
         return transaction;

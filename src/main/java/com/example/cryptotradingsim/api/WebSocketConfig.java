@@ -19,6 +19,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(cryptoWebSocketHandler, "/api/crypto/live")
-                .setAllowedOrigins("*"); // Allow all origins for development
+                .setAllowedOrigins("*");
     }
 }
