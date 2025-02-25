@@ -112,3 +112,9 @@ th {
     padding: 10px;
     border-bottom: 1px solid #ddd;
 }
+
+/* Holdings Column */
+.holdings {
+    font-weight: bold;
+    color: #4CAF50; /* Green color for holdings */
+}
