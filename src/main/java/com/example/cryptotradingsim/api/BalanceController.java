@@ -24,6 +24,7 @@ public class BalanceController {
     @PostMapping("/reset")
     public void resetBalance() {
         balance = INITIAL_BALANCE;
+        transactionHistory.clear();
     }
 
     @PostMapping("/buy")

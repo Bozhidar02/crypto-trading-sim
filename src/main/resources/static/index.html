@@ -4,20 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Crypto Prices</title>
-    <script src="app.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="app.js" defer></script>
 </head>
 <body>
-<h1>Live Cryptocurrency Prices</h1>
-<table >
-    <thead>
-    <tr>
+<!-- Navigation Bar -->
+<nav>
+    <div class="nav-container">
+        <h1>Live Cryptocurrency Prices</h1>
+        <div class="nav-buttons">
+            <span id="balance">Balance: $0.00</span>
+            <button id="reset-button">Reset</button>
+            <button id="history-button">View Transaction History</button>
+        </div>
+    </div>
+</nav>
 
-    </tr>
-    </thead>
-    <tbody id="crypto-table"></tbody>
-</table>
+<!-- Main Content -->
+<div class="container">
+    <!-- Crypto Prices Table -->
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Price (USD)</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="crypto-table"></tbody>
+    </table>
 
-
+    <!-- Transaction History -->
+    <div class="history-section">
+        <h2>Transaction History</h2>
+        <ul id="history-list"></ul>
+    </div>
+</div>
 </body>
 </html>
