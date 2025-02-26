@@ -66,10 +66,19 @@ public class BalanceController {
         }
 
         double purchasePrice = purchases.getOrDefault(symbol, 0.0);
+        // Store weighted average purchase price
+        double existingAmount = holdings.getOrDefault(symbol, 0.0);
+        double newTotalAmount = existingAmount + amount;
+        double averagePurchasePrice = ((existingAmount * purchases.getOrDefault(symbol, 0.0)) + (amount * price)) / newTotalAmount;
+        purchases.put(symbol, averagePurchasePrice);
+
         double profitLoss = (price - purchasePrice)*amount;
         profitLoss = Math.round(profitLoss*100.0)/100.0;
-        String transaction = "Sold " + amount + " " + symbol + " at $" + price + " each (Total: $" + earnings + ")"
-                + (profitLoss >= 0 ? "Profit: $" : "Loss: $") + Math.abs(profitLoss);
+        String transaction = String.format(
+                "Sold %.4f %s at $%.2f each (Total: $%.2f) %s $%.2f",
+                amount, symbol, price, earnings,
+                (profitLoss >= 0 ? "Profit:" : "Loss:"), Math.abs(profitLoss)
+        );
         transactionHistory.add(transaction);
 
         return transaction;

@@ -118,3 +118,74 @@ th {
     font-weight: bold;
     color: #4CAF50; /* Green color for holdings */
 }
+/* Modal styles */
+.modal {
+    display: none; /* Ensures modal is hidden on page load */
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 300px;
+    margin: 10% auto;
+    text-align: center;
+}
+
+.modal-buttons {
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-buttons button#confirmTransaction {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.modal-buttons button#cancelTransaction {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Style for the transaction result message */
+#transactionResult {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Confirmation message styles */
+#confirmationMessage {
+    text-align: center;
+}
+
+#confirmationText {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+#okButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

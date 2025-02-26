@@ -2,78 +2,148 @@ let socket;
 let balance = 0;
 let holdings = {}; // Store user's crypto holdings
 
-// Fetch and update balance
+// Modal elements
+const modal = document.getElementById('transactionModal');
+const modalMessage = document.getElementById('modalMessage');
+const amountInput = document.getElementById('amountInput');
+const confirmTransactionButton = document.getElementById('confirmTransaction');
+const cancelTransactionButton = document.getElementById('cancelTransaction');
+const errorElement = document.getElementById("modalError");
+const confirmationText = document.getElementById("confirmationText");
+
+// Variables to store transaction details
+let currentSymbol = '';
+let currentPrice = 0;
+let isBuy = false;
+
+// Function to open the modal
+function openModal(symbol, price, isBuyAction) {
+    currentSymbol = symbol;
+    currentPrice = price;
+    isBuy = isBuyAction;
+
+    modalMessage.textContent = `Enter the amount of ${symbol} you want to ${isBuy ? 'buy' : 'sell'} at $${price} per unit.`;
+    amountInput.value = ''; // Clear the input field
+    errorElement.style.display = "none"; // Hide previous errors
+    modal.style.display = 'block';
+}
+
+// Function to close the modal
+function closeModal() {
+    modal.style.display = "none";
+    document.getElementById("transactionForm").style.display = "block";
+    document.getElementById("confirmationMessage").style.display = "none";
+    confirmationText.innerHTML = "";
+    amountInput.value = "";
+    errorElement.style.display = "none"; // Hide error messages on close
+}
+
+// Handle confirm button click
+confirmTransactionButton.addEventListener('click', async () => {
+    const amount = parseFloat(amountInput.value);
+    const totalCost = (amount * currentPrice).toFixed(2);
+
+    if (isNaN(amount) || amount <= 0) {
+        showError("Please enter a valid amount.");
+        return;
+    }
+
+    if (isBuy) {
+        if (balance < totalCost) {
+            showError("Insufficient balance.");
+            return;
+        }
+        await buyCrypto(currentSymbol, amount, currentPrice);
+    } else {
+        if (!holdings[currentSymbol] || holdings[currentSymbol] < amount) {
+            showError("Insufficient holdings.");
+            return;
+        }
+        await sellCrypto(currentSymbol, amount, currentPrice);
+    }
+});
+
+// Function to display error messages inside the modal
+function showError(message) {
+    errorElement.textContent = message;
+    errorElement.style.display = "block";
+}
+
+// Function to show the confirmation message
+function showConfirmationModal(message) {
+    confirmationText.innerHTML = message;
+    document.getElementById("transactionForm").style.display = "none";
+    document.getElementById("confirmationMessage").style.display = "block";
+}
+
+// Close modal when clicking "OK"
+document.getElementById('okButton').addEventListener('click', closeModal);
+cancelTransactionButton.addEventListener('click', closeModal);
+window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+        closeModal();
+    }
+});
+
+// Fetch balance & holdings
 async function fetchBalance() {
     const response = await fetch('/api/balance');
-    const data = await response.json();
-    balance = data;
+    balance = await response.json();
     updateBalance(balance);
 }
 
-// Update balance display
 function updateBalance(newBalance) {
-    const balanceElement = document.getElementById('balance');
-    balanceElement.textContent = `Balance: $${newBalance.toFixed(2)}`;
+    document.getElementById('balance').textContent = `Balance: $${newBalance.toFixed(2)}`;
 }
 
-// Fetch user's holdings
 async function fetchHoldings() {
     const response = await fetch('/api/balance/holdings');
     holdings = await response.json();
 }
 
-// Reset balance
-async function resetBalance() {
-    await fetch('/api/balance/reset', { method: 'POST' });
-    await fetchBalance();
-    await fetchHoldings(); // Refresh holdings after reset
-    console.log('Balance reset');
-}
-
-// Fetch and display transaction history
 async function fetchTransactionHistory() {
     const response = await fetch('/api/balance/history');
     const history = await response.json();
-    const historyList = document.getElementById('history-list');
-    historyList.innerHTML = history.map(transaction => `<li>${transaction}</li>`).join('');
+    document.getElementById('history-list').innerHTML = history.map(t => `<li>${t}</li>`).join('');
 }
 
-// Buy crypto
+// Buy & Sell Crypto
 async function buyCrypto(symbol, amount, price) {
-    const response = await fetch(`/api/balance/buy?symbol=${symbol}&amount=${amount}&price=${price}`, {
-        method: 'POST',
-    });
-    const result = await response.text();
-    console.log(result);
+    await fetch(`/api/balance/buy?symbol=${symbol}&amount=${amount}&price=${price}`, { method: 'POST' });
     await fetchBalance();
-    await fetchHoldings(); // Refresh holdings after buying
+    await fetchHoldings();
     await fetchTransactionHistory();
+    showConfirmationModal(`Purchased ${amount} ${symbol} for $${(amount * price).toFixed(2)}`);
 }
 
-// Sell crypto
 async function sellCrypto(symbol, amount, price) {
-    const response = await fetch(`/api/balance/sell?symbol=${symbol}&amount=${amount}&price=${price}`, {
-        method: 'POST',
-    });
+    const response = await fetch(`/api/balance/sell?symbol=${symbol}&amount=${amount}&price=${price}`, { method: 'POST' });
     const result = await response.text();
-    console.log(result);
+    console.log("Server Response:", result);
+
+    if (result.startsWith("Insufficient")) {
+        showError(result);
+        return;
+    }
+
     await fetchBalance();
-    await fetchHoldings(); // Refresh holdings after selling
+    await fetchHoldings();
     await fetchTransactionHistory();
+
+    const profitLossMatch = result.match(/(Profit|Loss): \$(\d+(\.\d+)?)/);
+    let profitLossMessage = profitLossMatch ? profitLossMatch[0] : "";
+
+    showConfirmationModal(result, profitLossMessage);
 }
 
-// Add event listeners to Buy/Sell buttons
+// WebSocket connection for live prices
+// Function to add event listeners to Buy/Sell buttons
 function addButtonListeners() {
     document.querySelectorAll('.buy').forEach(button => {
         button.addEventListener('click', () => {
             const symbol = button.getAttribute('data-symbol');
             const price = parseFloat(button.getAttribute('data-price'));
-            const amount = parseFloat(prompt(`Enter amount of ${symbol} to buy:`));
-            if (!isNaN(amount) && amount > 0) {
-                buyCrypto(symbol, amount, price);
-            } else {
-                alert('Invalid amount');
-            }
+            openModal(symbol, price, true); // Open modal for buying
         });
     });
 
@@ -81,12 +151,7 @@ function addButtonListeners() {
         button.addEventListener('click', () => {
             const symbol = button.getAttribute('data-symbol');
             const price = parseFloat(button.getAttribute('data-price'));
-            const amount = parseFloat(prompt(`Enter amount of ${symbol} to sell:`));
-            if (!isNaN(amount) && amount > 0) {
-                sellCrypto(symbol, amount, price);
-            } else {
-                alert('Invalid amount');
-            }
+            openModal(symbol, price, false); // Open modal for selling
         });
     });
 }
@@ -133,7 +198,7 @@ function connectWebSocket() {
                 cryptoTable.appendChild(row);
             });
 
-            // Add event listeners to the new buttons
+            // Ensure buy/sell buttons work by adding event listeners
             addButtonListeners();
         } catch (error) {
             console.error('Error processing WebSocket message: ', error);
@@ -151,16 +216,10 @@ function connectWebSocket() {
     };
 }
 
-// Initialize the app
-document.addEventListener('DOMContentLoaded', async function () {
-    // Fetch initial balance and holdings
+
+document.addEventListener('DOMContentLoaded', async () => {
+    modal.style.display = 'none'; // Hide modal on page load
     await fetchBalance();
     await fetchHoldings();
-
-    // Connect to WebSocket
     connectWebSocket();
-
-    // Add event listeners
-    document.getElementById('reset-button').addEventListener('click', resetBalance);
-    document.getElementById('history-button').addEventListener('click', fetchTransactionHistory);
 });

@@ -8,7 +8,6 @@
     <script src="app.js" defer></script>
 </head>
 <body>
-<!-- Navigation Bar -->
 <nav>
     <div class="nav-container">
         <h1>Live Cryptocurrency Prices</h1>
@@ -20,7 +19,6 @@
     </div>
 </nav>
 
-<!-- Main Content -->
 <div class="container">
     <!-- Crypto Prices Table -->
     <table>
@@ -37,5 +35,29 @@
         <ul id="history-list"></ul>
     </div>
 </div>
+<!-- Add this modal structure to your HTML file -->
+<div id="transactionModal" class="modal">
+    <div class="modal-content">
+        <!-- Initial transaction form -->
+        <div id="transactionForm">
+            <p id="modalMessage"></p>
+            <p id="modalError" style="color: red; display: none;"></p>
+            <input type="number" id="amountInput" placeholder="Enter amount" min="0" step="0.0001">
+            <div class="modal-buttons">
+                <button id="confirmTransaction">Confirm</button>
+                <button id="cancelTransaction">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Confirmation message after transaction -->
+        <div id="confirmationMessage" style="display: none;">
+            <p id="confirmationText"></p>
+            <div class="modal-buttons">
+                <button id="okButton">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
