@@ -13,8 +13,8 @@
         <h1>Live Cryptocurrency Prices</h1>
         <div class="nav-buttons">
             <span id="balance">Balance: $0.00</span>
-            <button id="reset-button">Reset</button>
-            <button id="history-button">View Transaction History</button>
+            <button id="resetButton">Reset</button>
+            <button id="viewTransactionsButton">View Transaction History</button>
         </div>
     </div>
 </nav>
@@ -29,13 +29,20 @@
         <tbody id="crypto-table"></tbody>
     </table>
 
-    <!-- Transaction History -->
-    <div class="history-section">
-        <h2>Transaction History</h2>
-        <ul id="history-list"></ul>
-    </div>
 </div>
-<!-- Add this modal structure to your HTML file -->
+<!-- Transaction History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <h2>Transaction History</h2>
+            <ul id="history-list"></ul>
+
+            <!-- Move the "X" button inside the modal content and position it at the bottom -->
+            <button id="closeHistoryModal" class="close-button">X</button>
+        </div>
+    </div>
+
+
+
 <div id="transactionModal" class="modal">
     <div class="modal-content">
         <!-- Initial transaction form -->

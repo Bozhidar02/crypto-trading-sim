@@ -10,6 +10,9 @@ const confirmTransactionButton = document.getElementById('confirmTransaction');
 const cancelTransactionButton = document.getElementById('cancelTransaction');
 const errorElement = document.getElementById("modalError");
 const confirmationText = document.getElementById("confirmationText");
+const historyModal = document.getElementById('historyModal');
+const closeHistoryModal = document.getElementById('closeHistoryModal');
+const closeHistoryButton = document.getElementById('closeHistoryButton');
 
 // Variables to store transaction details
 let currentSymbol = '';
@@ -22,7 +25,7 @@ function openModal(symbol, price, isBuyAction) {
     currentPrice = price;
     isBuy = isBuyAction;
 
-    modalMessage.textContent = `Enter the amount of ${symbol} you want to ${isBuy ? 'buy' : 'sell'} at $${price} per unit.`;
+    modalMessage.textContent = `Enter the amount of ${symbol} you want to ${isBuy ? 'buy' : 'sell'} at $${price.toFixed(3)} per unit.`; // Display rounded price
     amountInput.value = ''; // Clear the input field
     errorElement.style.display = "none"; // Hide previous errors
     modal.style.display = 'block';
@@ -218,8 +221,126 @@ function connectWebSocket() {
 
 
 document.addEventListener('DOMContentLoaded', async () => {
-    modal.style.display = 'none'; // Hide modal on page load
+    modal.style.display = 'none'; // Hide buy/sell modal on page load
+
+    // Fetch initial data
     await fetchBalance();
     await fetchHoldings();
     connectWebSocket();
+
+    // Transaction History Modal Elements
+    const historyModal = document.getElementById("historyModal");
+    const historyList = document.getElementById("history-list");
+    const closeHistoryModal = document.getElementById("closeHistoryModal");
+    const closeHistoryButton = document.getElementById("closeHistoryButton");
+    const viewTransactionsButton = document.getElementById("viewTransactionsButton");
+
+    if (!historyModal || !historyList || !viewTransactionsButton) {
+        console.error("Transaction history modal elements not found. Check your HTML structure.");
+        return;
+    }
+
+    // Function to open the transaction history modal
+    async function openTransactionHistoryModal() {
+        try {
+            const response = await fetch("/api/balance/history");
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch transaction history");
+            }
+
+            const history = await response.json();
+
+            // Ensure history-list exists before modifying
+            if (!historyList) {
+                console.error("Error: history-list element is missing from the DOM.");
+                return;
+            }
+
+            historyList.innerHTML = history.length > 0
+                ? history.map(t => `<li>${t}</li>`).join("")
+                : "<li>No transactions found.</li>";
+
+            historyModal.style.display = "block"; // Show modal
+        } catch (error) {
+            console.error("Error fetching transaction history:", error);
+        }
+    }
+
+    // Function to close the modal
+    function closeTransactionHistoryModal() {
+        historyModal.style.display = "none";
+    }
+
+    // Event listeners for opening and closing the modal
+    viewTransactionsButton.addEventListener("click", openTransactionHistoryModal);
+    closeHistoryModal.addEventListener("click", closeTransactionHistoryModal);
+    closeHistoryButton.addEventListener("click", closeTransactionHistoryModal);
+
+    // Close modal when clicking outside of it
+    window.addEventListener("click", (event) => {
+        if (event.target === historyModal) {
+            closeTransactionHistoryModal();
+        }
+    });
+});
+
+
+async function resetPortfolio() {
+    const response = await fetch('/api/balance/reset', { method: 'POST' });
+
+    if (!response.ok) {
+        console.error("Error resetting portfolio");
+        return;
+    }
+
+    // Fetch updated balance and holdings
+    await fetchBalance();
+    await fetchHoldings();
+    await fetchTransactionHistory();
+
+}
+
+
+// Add event listeners for reset and view transactions buttons
+document.getElementById('resetButton').addEventListener('click', async () => {
+    await resetPortfolio();
+});
+
+async function openTransactionHistoryModal() {
+    try {
+        const response = await fetch('/api/balance/history');
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch transaction history");
+        }
+
+        const history = await response.json();
+
+        if (!Array.isArray(history) || history.length === 0) {
+            document.getElementById('history-list').innerHTML = "<li>No transactions found.</li>";
+        } else {
+            document.getElementById('history-list').innerHTML = history.map(t => `<li>${t}</li>`).join('');
+        }
+
+        historyModal.style.display = 'block'; // Show modal
+    } catch (error) {
+        console.error("Error fetching transaction history:", error);
+    }
+}
+
+// Function to close the modal
+function closeTransactionHistoryModal() {
+    historyModal.style.display = 'none';
+}
+
+document.getElementById('viewTransactionsButton').addEventListener('click', openTransactionHistoryModal);
+closeHistoryModal.addEventListener('click', closeTransactionHistoryModal);
+closeHistoryButton.addEventListener('click', closeTransactionHistoryModal);
+
+// Close modal when clicking outside of it
+window.addEventListener('click', (event) => {
+    if (event.target === historyModal) {
+        closeTransactionHistoryModal();
+    }
 });

@@ -189,3 +189,32 @@ th {
     border-radius: 5px;
     cursor: pointer;
 }
+/* Transaction History Modal styles */
+.modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between; /* Pushes the button to the bottom */
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    background: white;
+    border-radius: 8px;
+}
+
+.close-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: red;
+    color: white;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    align-self: center; /* Centers the button horizontally */
+}
+
+.close-button:hover {
+    background-color: darkred;
+}
