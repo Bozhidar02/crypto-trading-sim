@@ -11,7 +11,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final CryptoWebSocketHandler cryptoWebSocketHandler;
 
-    // Inject CryptoWebSocketHandler via constructor
     public WebSocketConfig(CryptoWebSocketHandler cryptoWebSocketHandler) {
         this.cryptoWebSocketHandler = cryptoWebSocketHandler;
     }

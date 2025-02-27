@@ -2,7 +2,6 @@ let socket;
 let balance = 0;
 let holdings = {}; // Store user's crypto holdings
 
-// Modal elements
 const modal = document.getElementById('transactionModal');
 const modalMessage = document.getElementById('modalMessage');
 const amountInput = document.getElementById('amountInput');
@@ -12,7 +11,6 @@ const errorElement = document.getElementById("modalError");
 const confirmationText = document.getElementById("confirmationText");
 const historyModal = document.getElementById('historyModal');
 const closeHistoryModal = document.getElementById('closeHistoryModal');
-const closeHistoryButton = document.getElementById('closeHistoryButton');
 
 // Variables to store transaction details
 let currentSymbol = '';
@@ -139,7 +137,6 @@ async function sellCrypto(symbol, amount, price) {
     showConfirmationModal(result, profitLossMessage);
 }
 
-// WebSocket connection for live prices
 // Function to add event listeners to Buy/Sell buttons
 function addButtonListeners() {
     document.querySelectorAll('.buy').forEach(button => {
@@ -173,7 +170,6 @@ function connectWebSocket() {
             const cryptoTable = document.getElementById('crypto-table');
             cryptoTable.innerHTML = '';
 
-            // Add a header row
             const headerRow = document.createElement('tr');
             headerRow.innerHTML = `
                 <th>Name</th>
@@ -184,7 +180,6 @@ function connectWebSocket() {
             `;
             cryptoTable.appendChild(headerRow);
 
-            // Add rows for each crypto
             cryptos.forEach(crypto => {
                 const row = document.createElement('tr');
                 const ownedAmount = holdings[crypto.symbol] || 0; // Get holdings for this crypto
@@ -201,7 +196,6 @@ function connectWebSocket() {
                 cryptoTable.appendChild(row);
             });
 
-            // Ensure buy/sell buttons work by adding event listeners
             addButtonListeners();
         } catch (error) {
             console.error('Error processing WebSocket message: ', error);
@@ -228,11 +222,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchHoldings();
     connectWebSocket();
 
-    // Transaction History Modal Elements
     const historyModal = document.getElementById("historyModal");
     const historyList = document.getElementById("history-list");
     const closeHistoryModal = document.getElementById("closeHistoryModal");
-    const closeHistoryButton = document.getElementById("closeHistoryButton");
     const viewTransactionsButton = document.getElementById("viewTransactionsButton");
 
     if (!historyModal || !historyList || !viewTransactionsButton) {
@@ -240,7 +232,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Function to open the transaction history modal
     async function openTransactionHistoryModal() {
         try {
             const response = await fetch("/api/balance/history");
@@ -267,7 +258,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Function to close the modal
     function closeTransactionHistoryModal() {
         historyModal.style.display = "none";
     }
@@ -276,7 +266,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     viewTransactionsButton.addEventListener("click", openTransactionHistoryModal);
     closeHistoryModal.addEventListener("click", closeTransactionHistoryModal);
 
-    // Close modal when clicking outside of it
     window.addEventListener("click", (event) => {
         if (event.target === historyModal) {
             closeTransactionHistoryModal();
@@ -328,7 +317,6 @@ async function openTransactionHistoryModal() {
     }
 }
 
-// Function to close the modal
 function closeTransactionHistoryModal() {
     historyModal.style.display = 'none';
 }
@@ -336,7 +324,6 @@ function closeTransactionHistoryModal() {
 document.getElementById('viewTransactionsButton').addEventListener('click', openTransactionHistoryModal);
 closeHistoryModal.addEventListener('click', closeTransactionHistoryModal);
 
-// Close modal when clicking outside of it
 window.addEventListener('click', (event) => {
     if (event.target === historyModal) {
         closeTransactionHistoryModal();

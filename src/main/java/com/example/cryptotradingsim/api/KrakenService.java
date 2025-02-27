@@ -15,11 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KrakenService {
     private static final String WEBSOCKET_URL = "wss://ws.kraken.com";
     private static final String REST_API_URL = "https://api.kraken.com/0/public/AssetPairs";
-    private static final String ASSETS_API_URL = "https://api.kraken.com/0/public/Assets";
+    //private static final String ASSETS_API_URL = "https://api.kraken.com/0/public/Assets";
     private final Map<String, Map<String, String>> cryptoData = new ConcurrentHashMap<>();
     private final CryptoWebSocketHandler webSocketHandler;
     private final RestTemplate restTemplate;
-   // private final Map<String, String> assetNames = new ConcurrentHashMap<>();
+
 
     private WebSocketClient client;
 
@@ -30,33 +30,7 @@ public class KrakenService {
         connectWebSocket();
     }
 
-    //leftover from the attempt to get names from Kraken Api
-//    private void fetchAssetNames() {
-//        try {
-//            // Fetch asset metadata from Kraken REST API
-//            String response = restTemplate.getForObject(ASSETS_API_URL, String.class);
-//
-//            JSONObject jsonResponse = new JSONObject(response);
-//            JSONObject result = jsonResponse.getJSONObject("result");
-//
-//            // Extract asset names
-//            for (String key : result.keySet()) {
-//                JSONObject assetInfo = result.getJSONObject(key);
-//                String name = assetInfo.optString("name", "");
-//                if (!name.isEmpty()) {
-//                    assetNames.put(key, name);
-//                    System.out.println("Added asset: " + key + " -> " + name); // Debugging: Log each asset
-//                }
-//            }
-//
-//            System.out.println("Fetched asset names: " + assetNames);
-//
-//        } catch (Exception e) {
-//            System.err.println("Error fetching asset names: " + e.getMessage());
-//            System.err.println("Using fallback map.");
-//        }
-//    }
-    //Using COINGECKO to map the names on the currencies  as Kraken does not seem to have the currencies
+    //Using COINGECKO to map the names on the currencies  as Kraken does not seem to have the names of the currencies
     private static final String COINGECKO_API_URL = "https://api.coingecko.com/api/v3/coins/list";
     private final Map<String, String> assetNames = new ConcurrentHashMap<>();
 
@@ -89,7 +63,6 @@ public class KrakenService {
                 assetNames.put(symbol, name);
             }
 
-            System.out.println("Fetched asset names: " + assetNames);
         } catch (Exception e) {
             System.err.println("Error fetching asset names: " + e.getMessage());
         }
@@ -150,7 +123,7 @@ public class KrakenService {
             for (String key : result.keySet()) {
                 JSONObject pairInfo = result.getJSONObject(key);
                 String wsname = pairInfo.optString("wsname", ""); // Use "wsname" field
-                if (!wsname.isEmpty() && wsname.endsWith("/USD")) { // Filter pairs trading against USD
+                if (wsname.endsWith("/USD")) { // Filter pairs trading against USD
                     tradingPairs.add(wsname);
                 }
             }
