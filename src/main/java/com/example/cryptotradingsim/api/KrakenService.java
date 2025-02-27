@@ -26,7 +26,7 @@ public class KrakenService {
     public KrakenService(CryptoWebSocketHandler webSocketHandler, RestTemplate restTemplate) {
         this.webSocketHandler = webSocketHandler;
         this.restTemplate = restTemplate;
-        //fetchAssetNames();
+        fetchAssetNames();
         connectWebSocket();
     }
 
@@ -56,6 +56,46 @@ public class KrakenService {
 //            System.err.println("Using fallback map.");
 //        }
 //    }
+    //Using COINGECKO to map the names on the currencies  as Kraken does not seem to have the currencies
+    private static final String COINGECKO_API_URL = "https://api.coingecko.com/api/v3/coins/list";
+    private final Map<String, String> assetNames = new ConcurrentHashMap<>();
+
+    // Manual fallback mapping for Kraken’s usual tickers, Kraken Api
+    private static final Map<String, String> FALLBACK_NAMES = Map.of(
+            "XBT", "Bitcoin",
+            "ETH", "Ethereum",
+            "XRP", "XRP",
+            "LTC", "Litecoin",
+            "BCH", "Bitcoin Cash",
+            "ADA", "Cardano",
+            "DOT", "Polkadot",
+            "LINK", "Chainlink",
+            "XLM", "Stellar",
+            "DOGE", "Dogecoin"
+    );
+
+    private void fetchAssetNames() {
+        try {
+            // Fetch asset metadata from CoinGecko API
+            String response = restTemplate.getForObject(COINGECKO_API_URL, String.class);
+            JSONArray jsonResponse = new JSONArray(response);
+
+            // Extract asset names
+            for (int i = 0; i < jsonResponse.length(); i++) {
+                JSONObject coin = jsonResponse.getJSONObject(i);
+                String symbol = coin.getString("symbol").toUpperCase(); // Convert to uppercase
+                String name = coin.getString("name");
+
+                assetNames.put(symbol, name);
+            }
+
+            System.out.println("Fetched asset names: " + assetNames);
+        } catch (Exception e) {
+            System.err.println("Error fetching asset names: " + e.getMessage());
+        }
+    }
+
+
 
     private void connectWebSocket() {
         try {
@@ -147,9 +187,9 @@ public class KrakenService {
                 // Ensure the array has the expected structure
                 if (jsonArray.length() >= 4) {
                     // Extract the pair and price data
-                    String pair = jsonArray.getString(3); // Pair is at index 3
-                    JSONObject tickerData = jsonArray.getJSONObject(1); // Ticker data is at index 1
-                    String price = tickerData.getJSONArray("a").getString(0); // Ask price is at index 0 of array "a"
+                    String pair = jsonArray.getString(3);
+                    JSONObject tickerData = jsonArray.getJSONObject(1);
+                    String price = tickerData.getJSONArray("a").getString(0);
 
                     // Store crypto data
                     Map<String, String> cryptoInfo = new HashMap<>();
@@ -159,11 +199,9 @@ public class KrakenService {
 
                     cryptoData.put(pair, cryptoInfo);
 
-                    // Notify clients
                     sendUpdateToClients();
                 }
             } else if (message.trim().startsWith("{")) {
-                // Parse the message as a JSON object (e.g., subscription confirmation, heartbeat, etc.)
                 JSONObject jsonMessage = new JSONObject(message);
 
                 // Handle connection events (e.g., subscription confirmation)
@@ -206,11 +244,23 @@ public class KrakenService {
     }
 
     private String getCryptoName(String symbol) {
-        // Extract the base currency from the pair (e.g., "XBT/USD" → "XBT")
-        //String baseCurrency = symbol.split("/")[0];
-        //String name = assetNames.getOrDefault(baseCurrency, baseCurrency);
-        return symbol.split("/")[0];
+        String baseCurrency = symbol.split("/")[0];
+
+        // First we use the fallback map as the CoinGekko does not always match  and these are the most common names
+        if (FALLBACK_NAMES.containsKey(baseCurrency)) {
+            return FALLBACK_NAMES.get(baseCurrency);
+        }
+
+        //  then we try CoinGecko’s API data
+        if (assetNames.containsKey(baseCurrency)) {
+            return assetNames.get(baseCurrency);
+        }
+
+        // As a last resort, we return the symbol itself
+        return baseCurrency;
     }
+
+
 
     private void sendUpdateToClients() {
         List<Map<String, String>> sortedTopCryptos = cryptoData.values().stream()

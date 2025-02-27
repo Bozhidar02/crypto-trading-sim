@@ -275,7 +275,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Event listeners for opening and closing the modal
     viewTransactionsButton.addEventListener("click", openTransactionHistoryModal);
     closeHistoryModal.addEventListener("click", closeTransactionHistoryModal);
-    closeHistoryButton.addEventListener("click", closeTransactionHistoryModal);
 
     // Close modal when clicking outside of it
     window.addEventListener("click", (event) => {
@@ -336,7 +335,6 @@ function closeTransactionHistoryModal() {
 
 document.getElementById('viewTransactionsButton').addEventListener('click', openTransactionHistoryModal);
 closeHistoryModal.addEventListener('click', closeTransactionHistoryModal);
-closeHistoryButton.addEventListener('click', closeTransactionHistoryModal);
 
 // Close modal when clicking outside of it
 window.addEventListener('click', (event) => {
