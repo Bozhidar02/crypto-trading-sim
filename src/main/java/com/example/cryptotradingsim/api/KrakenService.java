@@ -177,7 +177,6 @@ public class KrakenService {
             } else if (message.trim().startsWith("{")) {
                 JSONObject jsonMessage = new JSONObject(message);
 
-                // Handle connection events (e.g., subscription confirmation)
                 if (jsonMessage.has("event")) {
                     String eventType = jsonMessage.getString("event");
                     if ("subscriptionStatus".equals(eventType)) {
